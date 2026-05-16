@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ===== Global Styles & Animations ===== */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
+
+code, .font-mono {
+  font-family: var(--font-mono), "Fira Code", monospace;
+}
+
+/* ===== Ambient Blob Animation ===== */
+@keyframes blobFloat {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -30px) scale(1.12); }
+}
+
+.ambient-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: blobFloat 20s ease-in-out infinite alternate;
+}
+
+/* ===== Pop-in Animation ===== */
+@keyframes popIn {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop-in {
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== Pulse Marker ===== */
+@keyframes pulseMarker {
+  0%, 100% { box-shadow: 0 0 8px rgba(124,58,237,0.2); }
+  50%      { box-shadow: 0 0 20px rgba(124,58,237,0.4); }
+}
+
+/* ===== Pulse Front Queue Item ===== */
+@keyframes pulseFront {
+  0%, 100% { box-shadow: 0 0 8px rgba(59,130,246,0.12); }
+  50%      { box-shadow: 0 0 18px rgba(59,130,246,0.3); }
+}
+
+/* ===== Temp Node Pop ===== */
+@keyframes tempPop {
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ===== Temp Glow ===== */
+@keyframes tempGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(217, 119, 6, 0.12), 0 0 30px rgba(217, 119, 6, 0.05); }
+  50%      { box-shadow: 0 0 24px rgba(217, 119, 6, 0.3), 0 0 50px rgba(217, 119, 6, 0.1); }
+}
+
+/* ===== Fade Slide In (log entries) ===== */
+@keyframes fadeSlideIn {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-slide-in {
+  animation: fadeSlideIn 0.25s ease;
+}
+
+/* ===== Card hover glow ===== */
+@keyframes cardGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.05); }
+  50%      { box-shadow: 0 0 40px rgba(99, 102, 241, 0.15); }
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 4px; }
