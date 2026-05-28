@@ -1316,7 +1316,712 @@ export function useLinkedList() {
         if (i >= j) push(23, `Loop finished. return true; (Is a Palindrome)`);
         break;
       }
-      // You can add detectCycle, kReverse, recursiveReverse easily by expanding this later!
+      case "forwardTraversal": {
+        push(1, `forwardTraversal() called.`);
+        const visited: number[] = [];
+        state.extraState = { output: [...visited] };
+
+        let tempId: string | null = state.head;
+        if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+        push(2, `Node* temp = head;`);
+
+        while (tempId !== null) {
+          push(3, `while(temp != NULL) -> true`);
+          const tNode = state.nodes.find(n => n.id === tempId);
+          visited.push(tNode!.val);
+          state.extraState = { output: [...visited] };
+          push(4, `cout << temp->data << " "; // output: ${visited.join(" ")}`);
+
+          tempId = tNode?.nextId || null;
+          if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+          push(5, `temp = temp->next;`);
+        }
+        push(3, `while(temp != NULL) -> false. Loop ends.`);
+        push(7, `cout << endl; // Traversal complete.`);
+        break;
+      }
+      case "recursiveTraversal": {
+        push(6, `recursiveTraversal() called.`);
+        push(7, `recursiveTraversalUtil(head);`);
+        const visited: number[] = [];
+        state.extraState = { output: [...visited], callDepth: 0 };
+        let nodeId: string | null = state.head;
+        let depth = 0;
+
+        // Descend through the list recursively
+        while (nodeId !== null) {
+          const nd = state.nodes.find(n => n.id === nodeId);
+          if (nodeId) state.pointers[`frame${depth}`] = nodeId;
+          state.extraState = { output: [...visited], callDepth: depth };
+          push(1, `${"  ".repeat(depth)}recursiveTraversalUtil(node=${nd?.val})`);
+          push(2, `${"  ".repeat(depth)}if(node == NULL) -> false`);
+          visited.push(nd!.val);
+          state.extraState = { output: [...visited], callDepth: depth };
+          push(3, `${"  ".repeat(depth)}cout << node->data; // output: ${visited.join(" ")}`);
+          push(4, `${"  ".repeat(depth)}recursiveTraversalUtil(node->next);`);
+
+          nodeId = nd?.nextId || null;
+          depth++;
+        }
+
+        // Base case: NULL
+        state.extraState = { output: [...visited], callDepth: depth };
+        push(1, `${"  ".repeat(depth)}recursiveTraversalUtil(node=NULL)`);
+        push(2, `${"  ".repeat(depth)}if(node == NULL) -> true. return;`);
+
+        // Unwind the call stack
+        for (let i = depth - 1; i >= 0; i--) {
+          delete state.pointers[`frame${i}`];
+          state.extraState = { output: [...visited], callDepth: i };
+          push(5, `${"  ".repeat(i)}Returning from depth ${i}.`);
+        }
+
+        push(8, `cout << endl; // Traversal complete.`);
+        break;
+      }
+      case "zigzagTraversal": {
+        push(1, `zigzagTraversal() called.`);
+        const arr: number[] = [];
+        state.extraState = { arr: [...arr], output: [], direction: "→" };
+
+        // Phase 1: Collect all values into array
+        let tempId: string | null = state.head;
+        if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+        push(3, `Node* temp = head;`);
+
+        while (tempId !== null) {
+          push(4, `while(temp != NULL) -> true`);
+          const tNode = state.nodes.find(n => n.id === tempId);
+          arr.push(tNode!.val);
+          state.extraState = { arr: [...arr], output: [], direction: "→" };
+          push(5, `arr.push_back(temp->data); // arr = [${arr.join(", ")}]`);
+
+          tempId = tNode?.nextId || null;
+          if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+          push(6, `temp = temp->next;`);
+        }
+        push(4, `while loop ends. Array collected.`);
+        delete state.pointers["temp"];
+
+        // Phase 2: Zigzag through the array
+        let leftToRight = true;
+        let i = 0;
+        let j = arr.length - 1;
+        const output: number[] = [];
+        state.extraState = { arr: [...arr], output: [...output], i, j, direction: "→" };
+        push(8, `bool leftToRight = true;`);
+        push(9, `int i = 0, j = ${j};`);
+
+        while (i <= j) {
+          const dir = leftToRight ? "→" : "←";
+          state.extraState = { arr: [...arr], output: [...output], i, j, direction: dir };
+          push(10, `while(i <= j) -> ${i} <= ${j} -> true`);
+
+          if (leftToRight) {
+            output.push(arr[i]);
+            state.extraState = { arr: [...arr], output: [...output], i, j, direction: dir };
+            push(11, `leftToRight: cout << arr[${i}] (${arr[i]}); i++; // output: ${output.join(" ")}`);
+            i++;
+          } else {
+            output.push(arr[j]);
+            state.extraState = { arr: [...arr], output: [...output], i, j, direction: dir };
+            push(12, `rightToLeft: cout << arr[${j}] (${arr[j]}); j--; // output: ${output.join(" ")}`);
+            j--;
+          }
+          leftToRight = !leftToRight;
+          state.extraState = { arr: [...arr], output: [...output], i, j, direction: leftToRight ? "→" : "←" };
+          push(13, `leftToRight = !leftToRight; -> ${leftToRight ? "true (→)" : "false (←)"}`);
+        }
+        push(10, `while(i <= j) -> false. Loop ends.`);
+        push(15, `cout << endl; // Zigzag traversal complete: ${output.join(" ")}`);
+        break;
+      }
+      case "recursiveReverse": {
+        push(9, `recursiveReverse() called.`);
+        state.tail = state.head;
+        push(10, `tail = head;`);
+        push(11, `head = recursiveReverseUtil(head);`);
+
+        if (!state.head) { push(1, `List is empty.`); break; }
+
+        // Build ordered list of node IDs from head
+        const nodeIds: string[] = [];
+        let nid: string | null = state.head;
+        while (nid) {
+          nodeIds.push(nid);
+          const nd = state.nodes.find(n => n.id === nid);
+          nid = nd?.nextId || null;
+        }
+
+        // Recursive descent
+        for (let d = 0; d < nodeIds.length; d++) {
+          const nd = state.nodes.find(n => n.id === nodeIds[d]);
+          state.pointers[`frame${d}`] = nodeIds[d];
+          push(1, `${"  ".repeat(d)}recursiveReverseUtil(node=${nd?.val})`);
+          if (d === nodeIds.length - 1) {
+            push(2, `${"  ".repeat(d)}node->next == NULL -> return node; (base case)`);
+          } else {
+            push(2, `${"  ".repeat(d)}node != NULL && node->next != NULL`);
+            push(4, `${"  ".repeat(d)}Node* rest = recursiveReverseUtil(node->next);`);
+          }
+        }
+
+        // Unwind: reverse pointers
+        for (let d = nodeIds.length - 1; d > 0; d--) {
+          const currNode = state.nodes.find(n => n.id === nodeIds[d]);
+          const prevNode = state.nodes.find(n => n.id === nodeIds[d - 1]);
+          // node->next->next = node  (currNode.next = prevNodeId... wait)
+          // At depth d-1: node = nodeIds[d-1], node->next = nodeIds[d]
+          // node->next->next = node means nodeIds[d].next = nodeIds[d-1]
+          if (currNode) currNode.nextId = nodeIds[d - 1];
+          push(5, `${"  ".repeat(d - 1)}node->next->next = node; (${currNode?.val}->next = ${prevNode?.val})`);
+          if (prevNode) prevNode.nextId = null;
+          push(6, `${"  ".repeat(d - 1)}node->next = NULL;`);
+          push(7, `${"  ".repeat(d - 1)}return rest;`);
+          delete state.pointers[`frame${d}`];
+        }
+        delete state.pointers[`frame0`];
+
+        state.head = nodeIds[nodeIds.length - 1];
+        push(11, `head = ${state.nodes.find(n => n.id === state.head)?.val}; Reverse complete.`);
+        break;
+      }
+      case "reverseInGroups": {
+        const k = args.val as number;
+        push(1, `reverseKGroup(head, ${k}) called.`);
+        if (k <= 0 || !state.head) { push(1, `Invalid k or empty list.`); break; }
+
+        // Build ordered list
+        const orderedIds: string[] = [];
+        let nid2: string | null = state.head;
+        while (nid2) {
+          orderedIds.push(nid2);
+          const nd = state.nodes.find(n => n.id === nid2);
+          nid2 = nd?.nextId || null;
+        }
+
+        // Process groups
+        let groupStart = 0;
+        let prevGroupTail: string | null = null;
+        let groupNum = 0;
+
+        while (groupStart < orderedIds.length) {
+          const groupEnd = Math.min(groupStart + k, orderedIds.length);
+          const groupIds = orderedIds.slice(groupStart, groupEnd);
+          groupNum++;
+
+          push(1, `--- Group ${groupNum}: [${groupIds.map(id => state.nodes.find(n => n.id === id)?.val).join(", ")}] ---`);
+
+          // Reverse this group
+          let prevId: string | null = null;
+          let currId: string | null = groupIds[0];
+
+          for (let gi = 0; gi < groupIds.length; gi++) {
+            const cNode = state.nodes.find(n => n.id === groupIds[gi]);
+            if (groupIds[gi]) state.pointers["curr"] = groupIds[gi];
+
+            const nextId = gi + 1 < groupIds.length ? groupIds[gi + 1] : (groupEnd < orderedIds.length ? orderedIds[groupEnd] : null);
+            push(7, `next = curr->next;`);
+
+            if (cNode) cNode.nextId = prevId;
+            push(8, `curr->next = prev; (${cNode?.val}->next = ${prevId ? state.nodes.find(n => n.id === prevId)?.val : "NULL"})`);
+
+            prevId = groupIds[gi];
+            if (prevId) state.pointers["prev"] = prevId;
+            push(9, `prev = curr;`);
+            push(10, `count++;`);
+          }
+
+          // After reversing, groupIds[0] is now the tail of this group
+          // groupIds[groupIds.length-1] is the new head of this group
+          const newGroupHead = groupIds[groupIds.length - 1];
+          const newGroupTail = groupIds[0];
+
+          // Connect previous group's tail to this group's new head
+          if (prevGroupTail) {
+            const ptNode = state.nodes.find(n => n.id === prevGroupTail);
+            if (ptNode) ptNode.nextId = newGroupHead;
+            push(14, `Previous group tail->next = ${state.nodes.find(n => n.id === newGroupHead)?.val}`);
+          } else {
+            state.head = newGroupHead;
+            push(1, `head = ${state.nodes.find(n => n.id === newGroupHead)?.val};`);
+          }
+
+          // Connect this group's tail to the next group (temporarily)
+          const tailNode = state.nodes.find(n => n.id === newGroupTail);
+          if (tailNode) tailNode.nextId = groupEnd < orderedIds.length ? orderedIds[groupEnd] : null;
+
+          prevGroupTail = newGroupTail;
+          groupStart = groupEnd;
+        }
+
+        // Update tail
+        if (prevGroupTail) state.tail = prevGroupTail;
+        push(15, `Reverse in groups of ${k} complete.`);
+        delete state.pointers["curr"];
+        delete state.pointers["prev"];
+        break;
+      }
+      case "reverseAlternateK": {
+        const k = args.val as number;
+        push(1, `reverseAltK(head, ${k}) called.`);
+        if (k <= 0 || !state.head) { push(1, `Invalid k or empty list.`); break; }
+
+        // Build ordered list
+        const orderedIds: string[] = [];
+        let nid3: string | null = state.head;
+        while (nid3) {
+          orderedIds.push(nid3);
+          const nd = state.nodes.find(n => n.id === nid3);
+          nid3 = nd?.nextId || null;
+        }
+
+        let idx = 0;
+        let prevGroupTail: string | null = null;
+        let reverse = true;
+        let roundNum = 0;
+
+        while (idx < orderedIds.length) {
+          const end = Math.min(idx + k, orderedIds.length);
+          const groupIds = orderedIds.slice(idx, end);
+          roundNum++;
+
+          if (reverse) {
+            push(6, `--- Reverse group ${roundNum}: [${groupIds.map(id => state.nodes.find(n => n.id === id)?.val).join(", ")}] ---`);
+
+            // Reverse this group
+            let prevId: string | null = null;
+            for (let gi = 0; gi < groupIds.length; gi++) {
+              const cNode = state.nodes.find(n => n.id === groupIds[gi]);
+              if (groupIds[gi]) state.pointers["curr"] = groupIds[gi];
+              if (cNode) cNode.nextId = prevId;
+              push(8, `curr->next = prev; (${cNode?.val}->next = ${prevId ? state.nodes.find(n => n.id === prevId)?.val : "NULL"})`);
+              prevId = groupIds[gi];
+              push(10, `count++;`);
+            }
+
+            const newGroupHead = groupIds[groupIds.length - 1];
+            const newGroupTail = groupIds[0];
+
+            if (prevGroupTail) {
+              const ptNode = state.nodes.find(n => n.id === prevGroupTail);
+              if (ptNode) ptNode.nextId = newGroupHead;
+            } else {
+              state.head = newGroupHead;
+              push(1, `head = ${state.nodes.find(n => n.id === newGroupHead)?.val};`);
+            }
+
+            const tailNode = state.nodes.find(n => n.id === newGroupTail);
+            if (tailNode) tailNode.nextId = end < orderedIds.length ? orderedIds[end] : null;
+            prevGroupTail = newGroupTail;
+          } else {
+            push(15, `--- Skip group ${roundNum}: [${groupIds.map(id => state.nodes.find(n => n.id === id)?.val).join(", ")}] ---`);
+
+            // Just keep them as-is, connect previous tail
+            if (prevGroupTail) {
+              const ptNode = state.nodes.find(n => n.id === prevGroupTail);
+              if (ptNode) ptNode.nextId = groupIds[0];
+            }
+
+            // Ensure chain within group
+            for (let gi = 0; gi < groupIds.length - 1; gi++) {
+              const nd = state.nodes.find(n => n.id === groupIds[gi]);
+              if (nd) nd.nextId = groupIds[gi + 1];
+            }
+            const lastInGroup = state.nodes.find(n => n.id === groupIds[groupIds.length - 1]);
+            if (lastInGroup) lastInGroup.nextId = end < orderedIds.length ? orderedIds[end] : null;
+
+            for (const gid of groupIds) {
+              state.pointers["curr"] = gid;
+              push(17, `Skipping node ${state.nodes.find(n => n.id === gid)?.val}`);
+            }
+
+            prevGroupTail = groupIds[groupIds.length - 1];
+          }
+
+          reverse = !reverse;
+          idx = end;
+        }
+
+        // Update tail
+        let t: string | null = state.head;
+        let lastId2: string | null = t;
+        while (t) { lastId2 = t; const nd = state.nodes.find(n => n.id === t); t = nd?.nextId || null; }
+        state.tail = lastId2;
+        delete state.pointers["curr"];
+        push(21, `Reverse alternate ${k} nodes complete.`);
+        break;
+      }
+      case "reverseSublist": {
+        const left = args.pos as number;
+        const right = args.val as number;
+        push(1, `reverseSublist(${left}, ${right}) called.`);
+
+        if (!state.head || left <= 0 || right <= 0 || left >= right) {
+          push(2, `Invalid range or empty list. Return.`);
+          break;
+        }
+
+        // Build ordered list
+        const orderedIds: string[] = [];
+        let nid4: string | null = state.head;
+        while (nid4) {
+          orderedIds.push(nid4);
+          const nd = state.nodes.find(n => n.id === nid4);
+          nid4 = nd?.nextId || null;
+        }
+
+        if (left > orderedIds.length || right > orderedIds.length) {
+          push(2, `Range out of bounds. Return.`);
+          break;
+        }
+
+        // Navigate to node before left
+        push(3, `Node dummy(0); dummy.next = head;`);
+        push(4, `Node* pre = &dummy;`);
+        const preIdx = left - 2; // -1 for 0-indexing, -1 for "before"
+        if (preIdx >= 0) {
+          state.pointers["pre"] = orderedIds[preIdx];
+          push(5, `Moving pre to position ${left - 1} (node ${state.nodes.find(n => n.id === orderedIds[preIdx])?.val})`);
+        } else {
+          push(5, `pre stays at dummy (before head).`);
+        }
+
+        // Reverse from left to right using the "pull forward" method
+        const sublistIds = orderedIds.slice(left - 1, right);
+        let currIdx = left - 1; // 0-indexed position of curr
+        state.pointers["curr"] = orderedIds[currIdx];
+        push(6, `Node* curr = pre->next; (${state.nodes.find(n => n.id === orderedIds[currIdx])?.val})`);
+
+        for (let step = 0; step < right - left; step++) {
+          const currNode = state.nodes.find(n => n.id === orderedIds[currIdx]);
+          const nxtIdx = currIdx + step + 1; // next node to pull
+          if (nxtIdx >= orderedIds.length) break;
+
+          const nxtNode = state.nodes.find(n => n.id === orderedIds[nxtIdx]);
+          state.pointers["nxt"] = orderedIds[nxtIdx];
+          push(8, `Node* nxt = curr->next; (${nxtNode?.val})`);
+
+          // curr->next = nxt->next
+          if (currNode) currNode.nextId = nxtNode?.nextId || null;
+          push(9, `curr->next = nxt->next;`);
+
+          // nxt->next = pre->next (the current head of the reversed portion)
+          // figure out who pre->next is
+          const preNextId = preIdx >= 0
+            ? state.nodes.find(n => n.id === orderedIds[preIdx])?.nextId
+            : state.head;
+
+          // Actually we need to track the real pre->next
+          // After previous iterations, pre->next may have changed
+          // Let's compute pre->next from the current state
+          let actualPreNext: string | null;
+          if (preIdx >= 0) {
+            actualPreNext = state.nodes.find(n => n.id === orderedIds[preIdx])!.nextId;
+          } else {
+            actualPreNext = state.head;
+          }
+
+          if (nxtNode) nxtNode.nextId = actualPreNext;
+          push(10, `nxt->next = pre->next; (${nxtNode?.val}->next = ${actualPreNext ? state.nodes.find(n => n.id === actualPreNext)?.val : "NULL"})`);
+
+          // pre->next = nxt
+          if (preIdx >= 0) {
+            const preNode = state.nodes.find(n => n.id === orderedIds[preIdx]);
+            if (preNode) preNode.nextId = orderedIds[nxtIdx];
+          } else {
+            state.head = orderedIds[nxtIdx];
+          }
+          push(11, `pre->next = nxt; (${nxtNode?.val})`);
+        }
+
+        delete state.pointers["nxt"];
+        delete state.pointers["curr"];
+        delete state.pointers["pre"];
+
+        // Update tail
+        let t2: string | null = state.head;
+        let lastId3: string | null = t2;
+        while (t2) { lastId3 = t2; const nd = state.nodes.find(n => n.id === t2); t2 = nd?.nextId || null; }
+        state.tail = lastId3;
+        push(13, `head = dummy.next; Reverse sublist [${left}..${right}] complete.`);
+        break;
+      }
+      case "pairwiseReverse": {
+        push(1, `pairwiseReverse() called.`);
+        let currId: string | null = state.head;
+        if (currId) state.pointers["curr"] = currId;
+        push(2, `Node* curr = head;`);
+
+        let pairNum = 0;
+        while (currId !== null) {
+          const cNode = state.nodes.find(n => n.id === currId);
+          push(3, `while(curr && curr->next) check.`);
+          if (!cNode?.nextId) {
+            push(3, `curr->next is NULL. Loop ends.`);
+            break;
+          }
+
+          const nextNode = state.nodes.find(n => n.id === cNode.nextId);
+          pairNum++;
+          push(4, `Pair ${pairNum}: swap(${cNode.val}, ${nextNode?.val})`);
+
+          // Swap values
+          const tempVal = cNode.val;
+          cNode.val = nextNode!.val;
+          nextNode!.val = tempVal;
+          push(4, `After swap: (${cNode.val}, ${nextNode?.val})`);
+
+          // Move to next pair
+          currId = nextNode?.nextId || null;
+          if (currId) state.pointers["curr"] = currId; else delete state.pointers["curr"];
+          push(5, `curr = curr->next->next;`);
+        }
+        push(6, `Pairwise reverse complete.`);
+        break;
+      }
+      case "reverseUsingStack": {
+        push(1, `reverseUsingStack() called.`);
+        const stack: number[] = [];
+        state.extraState = { stack: [...stack] };
+
+        // Phase 1: Push all values to stack
+        let tempId: string | null = state.head;
+        if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+        push(3, `Node* temp = head;`);
+
+        while (tempId !== null) {
+          push(4, `while(temp != NULL) -> true`);
+          const tNode = state.nodes.find(n => n.id === tempId);
+          stack.push(tNode!.val);
+          state.extraState = { stack: [...stack] };
+          push(5, `st.push(${tNode!.val}); // stack: [${stack.join(", ")}]`);
+
+          tempId = tNode?.nextId || null;
+          if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+          push(6, `temp = temp->next;`);
+        }
+        push(4, `while loop ends. All values pushed.`);
+
+        // Phase 2: Pop from stack and overwrite node values
+        tempId = state.head;
+        if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+        push(8, `temp = head;`);
+
+        while (tempId !== null) {
+          push(9, `while(temp != NULL) -> true`);
+          const tNode = state.nodes.find(n => n.id === tempId);
+          const topVal = stack.pop()!;
+          state.extraState = { stack: [...stack] };
+          const oldVal = tNode!.val;
+          tNode!.val = topVal;
+          push(10, `temp->data = st.top() (${topVal}); // was ${oldVal}`);
+          push(11, `st.pop(); // stack: [${stack.join(", ")}]`);
+
+          tempId = tNode?.nextId || null;
+          if (tempId) state.pointers["temp"] = tempId; else delete state.pointers["temp"];
+          push(12, `temp = temp->next;`);
+        }
+        push(9, `while loop ends. Reverse using stack complete.`);
+        break;
+      }
+      case "bubbleSortLL": {
+        push(1, `bubbleSortLL() called.`);
+        if (!state.head) { push(2, `List is empty. Return.`); break; }
+        const getIds = () => { const ids: string[] = []; let c: string | null = state.head; while (c) { ids.push(c); const nd = state.nodes.find(n => n.id === c); c = nd?.nextId || null; } return ids; };
+        let swapped = true;
+        let passNum = 0;
+        const sortedFromEnd = new Set<string>();
+        while (swapped) {
+          swapped = false;
+          passNum++;
+          const ids = getIds();
+          state.extraState = { _sort: "bubble", pass: passNum, comparing: [], swapping: [], sorted: Array.from(sortedFromEnd) };
+          push(4, `--- Pass ${passNum} ---`);
+          for (let ci = 0; ci < ids.length - 1; ci++) {
+            if (sortedFromEnd.has(ids[ci + 1])) continue;
+            const currNode = state.nodes.find(n => n.id === ids[ci])!;
+            const nextNode = state.nodes.find(n => n.id === ids[ci + 1])!;
+            state.pointers["curr"] = ids[ci];
+            state.extraState = { _sort: "bubble", pass: passNum, comparing: [ids[ci], ids[ci + 1]], swapping: [], sorted: Array.from(sortedFromEnd) };
+            push(7, `Comparing ${currNode.val} and ${nextNode.val}`);
+            if (currNode.val > nextNode.val) {
+              state.extraState = { _sort: "bubble", pass: passNum, comparing: [], swapping: [ids[ci], ids[ci + 1]], sorted: Array.from(sortedFromEnd) };
+              push(9, `swap(${currNode.val}, ${nextNode.val})`);
+              const tmp = currNode.val; currNode.val = nextNode.val; nextNode.val = tmp;
+              swapped = true;
+            }
+          }
+          // Last unsorted node is now sorted
+          const idsAfter = getIds();
+          const lastUnsorted = idsAfter.filter(id => !sortedFromEnd.has(id));
+          if (lastUnsorted.length > 0) sortedFromEnd.add(lastUnsorted[lastUnsorted.length - 1]);
+          state.extraState = { _sort: "bubble", pass: passNum, comparing: [], swapping: [], sorted: Array.from(sortedFromEnd) };
+          push(14, `Pass ${passNum} done. swapped=${swapped}`);
+        }
+        const allIds = getIds();
+        state.extraState = { _sort: "bubble", pass: passNum, comparing: [], swapping: [], sorted: allIds };
+        push(15, `Bubble sort complete.`);
+        delete state.pointers["curr"];
+        break;
+      }
+      case "selectionSortLL": {
+        push(1, `selectionSortLL() called.`);
+        if (!state.head) { push(2, `List is empty. Return.`); break; }
+        const getIds = () => { const ids: string[] = []; let c: string | null = state.head; while (c) { ids.push(c); const nd = state.nodes.find(n => n.id === c); c = nd?.nextId || null; } return ids; };
+        const ids = getIds();
+        const sortedIds: string[] = [];
+        for (let ii = 0; ii < ids.length; ii++) {
+          const iNode = state.nodes.find(n => n.id === ids[ii])!;
+          state.pointers["i"] = ids[ii];
+          let minIdx = ii;
+          state.pointers["min"] = ids[minIdx];
+          state.extraState = { _sort: "selection", sorted: [...sortedIds], target: ids[ii], minId: ids[minIdx], scanning: null, swapping: [] };
+          push(3, `i = node(${iNode.val}) at position ${ii + 1}`);
+          for (let jj = ii + 1; jj < ids.length; jj++) {
+            const jNode = state.nodes.find(n => n.id === ids[jj])!;
+            const minNode = state.nodes.find(n => n.id === ids[minIdx])!;
+            state.pointers["j"] = ids[jj];
+            state.extraState = { _sort: "selection", sorted: [...sortedIds], target: ids[ii], minId: ids[minIdx], scanning: ids[jj], swapping: [] };
+            push(6, `j=${jNode.val}: ${jNode.val} < ${minNode.val}?`);
+            if (jNode.val < minNode.val) {
+              minIdx = jj;
+              state.pointers["min"] = ids[minIdx];
+              push(7, `New min: ${jNode.val}`);
+            }
+          }
+          delete state.pointers["j"];
+          if (minIdx !== ii) {
+            const minNode = state.nodes.find(n => n.id === ids[minIdx])!;
+            const currentINode = state.nodes.find(n => n.id === ids[ii])!;
+            state.extraState = { _sort: "selection", sorted: [...sortedIds], target: ids[ii], minId: ids[minIdx], scanning: null, swapping: [ids[ii], ids[minIdx]] };
+            push(11, `swap(${currentINode.val}, ${minNode.val})`);
+            const tmp = currentINode.val; currentINode.val = minNode.val; minNode.val = tmp;
+          }
+          sortedIds.push(ids[ii]);
+          state.extraState = { _sort: "selection", sorted: [...sortedIds], target: null, minId: null, scanning: null, swapping: [] };
+          push(12, `Position ${ii + 1} is now sorted.`);
+        }
+        state.extraState = { _sort: "selection", sorted: [...ids], target: null, minId: null, scanning: null, swapping: [] };
+        delete state.pointers["i"]; delete state.pointers["min"];
+        push(14, `Selection sort complete.`);
+        break;
+      }
+      case "insertionSortLL": {
+        push(1, `insertionSortLL() called.`);
+        if (!state.head) { push(2, `List is empty. Return.`); break; }
+        const getIds = () => { const ids: string[] = []; let c: string | null = state.head; while (c) { ids.push(c); const nd = state.nodes.find(n => n.id === c); c = nd?.nextId || null; } return ids; };
+        const ids = getIds();
+        const sortedVals: number[] = [state.nodes.find(n => n.id === ids[0])!.val];
+        const sortedNodeIds = [ids[0]];
+        state.extraState = { _sort: "insertion", sorted: [...sortedNodeIds], keyId: null };
+        push(3, `sorted = [${sortedVals.join(", ")}]`);
+        for (let ci = 1; ci < ids.length; ci++) {
+          const currNode = state.nodes.find(n => n.id === ids[ci])!;
+          state.pointers["curr"] = ids[ci];
+          const currVal = currNode.val;
+          state.extraState = { _sort: "insertion", sorted: [...sortedNodeIds], keyId: ids[ci] };
+          push(5, `Key = ${currVal}, picking from unsorted.`);
+          let insertIdx = sortedVals.length;
+          for (let si = 0; si < sortedVals.length; si++) {
+            if (sortedVals[si] >= currVal) { insertIdx = si; break; }
+          }
+          push(7, `Insert position for ${currVal}: index ${insertIdx + 1}`);
+          sortedVals.splice(insertIdx, 0, currVal);
+          for (let si = 0; si <= ci; si++) {
+            state.nodes.find(n => n.id === ids[si])!.val = sortedVals[si];
+          }
+          sortedNodeIds.push(ids[ci]);
+          state.extraState = { _sort: "insertion", sorted: [...sortedNodeIds], keyId: null };
+          push(8, `Inserted. sorted = [${sortedVals.join(", ")}]`);
+        }
+        state.extraState = { _sort: "insertion", sorted: [...ids], keyId: null };
+        delete state.pointers["curr"];
+        push(19, `Insertion sort complete.`);
+        break;
+      }
+      case "mergeSortLL": {
+        push(19, `mergeSort(head) called.`);
+        if (!state.head) { push(20, `List is empty. Return.`); break; }
+        const getIds = () => { const ids: string[] = []; let c: string | null = state.head; while (c) { ids.push(c); const nd = state.nodes.find(n => n.id === c); c = nd?.nextId || null; } return ids; };
+        const ids = getIds();
+        const vals = ids.map(id => state.nodes.find(n => n.id === id)!.val);
+        const mergeSort = (arr: number[], depth: number, label: string): number[] => {
+          state.extraState = { _sort: "merge", depth, left: [], right: [], comparing: [], phase: "split" };
+          push(19, `${"  ".repeat(depth)}mergeSort([${arr.join(", ")}]) ${label}`);
+          if (arr.length <= 1) { push(20, `${"  ".repeat(depth)}Base case.`); return arr; }
+          const mid = Math.floor(arr.length / 2);
+          state.extraState = { _sort: "merge", depth, left: arr.slice(0, mid), right: arr.slice(mid), comparing: [], phase: "split" };
+          push(21, `${"  ".repeat(depth)}Split at mid=${mid}`);
+          const left = mergeSort(arr.slice(0, mid), depth + 1, "(left)");
+          const right = mergeSort(arr.slice(mid), depth + 1, "(right)");
+          state.extraState = { _sort: "merge", depth, left, right, comparing: [], phase: "merge" };
+          push(9, `${"  ".repeat(depth)}merge([${left.join(", ")}], [${right.join(", ")}])`);
+          const merged: number[] = [];
+          let li = 0, ri = 0;
+          while (li < left.length && ri < right.length) {
+            state.extraState = { _sort: "merge", depth, left, right, comparing: [left[li], right[ri]], phase: "merge" };
+            push(10, `${"  ".repeat(depth)}Compare ${left[li]} vs ${right[ri]}`);
+            if (left[li] <= right[ri]) merged.push(left[li++]); else merged.push(right[ri++]);
+          }
+          while (li < left.length) merged.push(left[li++]);
+          while (ri < right.length) merged.push(right[ri++]);
+          state.extraState = { _sort: "merge", depth, left: [], right: [], comparing: [], merged, phase: "done" };
+          push(9, `${"  ".repeat(depth)}merged = [${merged.join(", ")}]`);
+          return merged;
+        };
+        const sorted = mergeSort(vals, 0, "(full list)");
+        for (let si = 0; si < ids.length; si++) state.nodes.find(n => n.id === ids[si])!.val = sorted[si];
+        state.extraState = { _sort: "merge", depth: 0, left: [], right: [], comparing: [], merged: sorted, phase: "complete" };
+        push(24, `Merge sort complete.`);
+        break;
+      }
+      case "quickSortLL": {
+        push(1, `quickSort() called on linked list.`);
+        if (!state.head) { push(2, `List is empty. Return.`); break; }
+        const getIds = () => { const ids: string[] = []; let c: string | null = state.head; while (c) { ids.push(c); const nd = state.nodes.find(n => n.id === c); c = nd?.nextId || null; } return ids; };
+        const ids = getIds();
+        const pivotedIds = new Set<string>();
+        const quickSort = (startIdx: number, endIdx: number, depth: number) => {
+          if (startIdx >= endIdx) { if (startIdx === endIdx) pivotedIds.add(ids[startIdx]); return; }
+          const pivotNode = state.nodes.find(n => n.id === ids[endIdx])!;
+          const pivotVal = pivotNode.val;
+          state.pointers["pivot"] = ids[endIdx];
+          state.extraState = { _sort: "quick", pivotId: ids[endIdx], comparing: null, sorted: Array.from(pivotedIds) };
+          push(3, `${"  ".repeat(depth)}Pivot = ${pivotVal}`);
+          let storeIdx = startIdx;
+          for (let ci = startIdx; ci < endIdx; ci++) {
+            const cNode = state.nodes.find(n => n.id === ids[ci])!;
+            state.pointers["curr"] = ids[ci];
+            state.extraState = { _sort: "quick", pivotId: ids[endIdx], comparing: ids[ci], sorted: Array.from(pivotedIds) };
+            push(5, `${"  ".repeat(depth)}${cNode.val} < ${pivotVal}?`);
+            if (cNode.val < pivotVal) {
+              if (storeIdx !== ci) {
+                const storeNode = state.nodes.find(n => n.id === ids[storeIdx])!;
+                const tmp = storeNode.val; storeNode.val = cNode.val; cNode.val = tmp;
+                push(6, `${"  ".repeat(depth)}swap pos ${storeIdx + 1} and ${ci + 1}`);
+              }
+              storeIdx++;
+            }
+          }
+          if (storeIdx !== endIdx) {
+            const storeNode = state.nodes.find(n => n.id === ids[storeIdx])!;
+            const tmp = storeNode.val; storeNode.val = pivotVal; pivotNode.val = tmp;
+          }
+          pivotedIds.add(ids[storeIdx]);
+          delete state.pointers["curr"];
+          state.extraState = { _sort: "quick", pivotId: ids[storeIdx], comparing: null, sorted: Array.from(pivotedIds) };
+          push(18, `${"  ".repeat(depth)}Pivot placed at pos ${storeIdx + 1}`);
+          quickSort(startIdx, storeIdx - 1, depth + 1);
+          quickSort(storeIdx + 1, endIdx, depth + 1);
+        };
+        quickSort(0, ids.length - 1, 0);
+        delete state.pointers["pivot"];
+        state.extraState = { _sort: "quick", pivotId: null, comparing: null, sorted: [...ids] };
+        push(20, `Quick sort complete.`);
+        break;
+      }
+      // You can add detectCycle etc. easily by expanding this later!
       default:
         push(1, `${op} is not fully simulated line-by-line yet.`);
         break;

@@ -19,7 +19,7 @@ export default function LinkedListPage() {
 
   // Initialize with a few nodes on mount
   useEffect(() => {
-    ll.initList([5, 10, 15, 20]);
+    ll.initList([15, 5, 20, 10, 25]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -109,11 +109,52 @@ export default function LinkedListPage() {
               Algorithms
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {["countNodes", "reverseIterative", "middleNode", "removeDuplicates", "isPalindrome"].map(op => (
+              {["countNodes", "middleNode", "removeDuplicates", "isPalindrome"].map(op => (
                 <Button key={op} variant="contained" size="small" sx={{ flex: "1 1 48%", fontSize: "0.65rem", bgcolor: "rgba(99,102,241,0.1)", color: "primary.main", boxShadow: "none", "&:hover": { bgcolor: "rgba(99,102,241,0.2)", boxShadow: "none" } }} onClick={() => handleOp(op)} disabled={ll.running}>
                   {op.replace(/([A-Z])/g, ' $1').trim()}
                 </Button>
               ))}
+            </Box>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 2, borderColor: "rgba(99,102,241,0.15)" }}>
+            <Typography variant="overline" sx={{ fontSize: "0.78rem", fontWeight: 700, color: "text.secondary", mb: 1, display: "block" }}>
+              Traversal
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Button variant="outlined" size="small" color="success" onClick={() => handleOp("forwardTraversal")} disabled={ll.running}>Forward Traversal</Button>
+              <Button variant="outlined" size="small" color="success" onClick={() => handleOp("recursiveTraversal")} disabled={ll.running}>Recursive Traversal</Button>
+              <Button variant="outlined" size="small" color="success" onClick={() => handleOp("zigzagTraversal")} disabled={ll.running}>Zigzag Traversal</Button>
+            </Box>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 2, borderColor: "rgba(99,102,241,0.15)" }}>
+            <Typography variant="overline" sx={{ fontSize: "0.78rem", fontWeight: 700, color: "text.secondary", mb: 1, display: "block" }}>
+              Reversal
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("reverseIterative")} disabled={ll.running}>Iterative Reverse</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("recursiveReverse")} disabled={ll.running}>Recursive Reverse</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("reverseInGroups")} disabled={ll.running}>Reverse in Groups (K=Val)</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("reverseAlternateK")} disabled={ll.running}>Reverse Alternate K (K=Val)</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("reverseSublist")} disabled={ll.running}>Reverse Sublist (Pos→Val)</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("pairwiseReverse")} disabled={ll.running}>Pairwise Reverse</Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => handleOp("reverseUsingStack")} disabled={ll.running}>Reverse Using Stack</Button>
+            </Box>
+          </Paper>
+          <Paper variant="outlined" sx={{ p: 2, borderColor: "rgba(99,102,241,0.15)" }}>
+            <Typography variant="overline" sx={{ fontSize: "0.78rem", fontWeight: 700, color: "text.secondary", mb: 1, display: "block" }}>
+              Sorting
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Button variant="outlined" size="small" color="secondary" onClick={() => handleOp("bubbleSortLL")} disabled={ll.running}>Bubble Sort</Button>
+              <Button variant="outlined" size="small" color="secondary" onClick={() => handleOp("selectionSortLL")} disabled={ll.running}>Selection Sort</Button>
+              <Button variant="outlined" size="small" color="secondary" onClick={() => handleOp("insertionSortLL")} disabled={ll.running}>Insertion Sort</Button>
+              <Button variant="outlined" size="small" color="secondary" href="/ll-merge-sort"
+                sx={{ display: "flex", gap: 0.5, "&:hover": { borderColor: "#eab308", color: "#eab308" } }}>
+                Merge Sort ↗
+              </Button>
+              <Button variant="outlined" size="small" color="secondary" onClick={() => handleOp("quickSortLL")} disabled={ll.running}>Quick Sort</Button>
             </Box>
           </Paper>
 
@@ -124,7 +165,7 @@ export default function LinkedListPage() {
                <Button variant="outlined" fullWidth size="small" startIcon={ll.paused ? <PlayArrow /> : <Pause />} onClick={ll.togglePause} disabled={!ll.running}>
                  {ll.paused ? "Resume" : "Pause"}
                </Button>
-               <Button variant="outlined" fullWidth size="small" color="error" startIcon={<RestartAlt />} onClick={() => ll.initList([5, 10, 15, 20])} disabled={ll.running}>
+               <Button variant="outlined" fullWidth size="small" color="error" startIcon={<RestartAlt />} onClick={() => ll.initList([15, 5, 20, 10, 25])} disabled={ll.running}>
                  Reset
                </Button>
              </Box>
