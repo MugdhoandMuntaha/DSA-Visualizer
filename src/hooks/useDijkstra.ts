@@ -45,6 +45,7 @@ interface UseDijkstraReturn {
   relaxResult: 'relaxed' | 'not-relaxed' | null;
   startDijkstra: (sourceId: number) => void;
   stepDijkstra: (sourceId: number) => void;
+  prevStepDijkstra: () => void;
   togglePause: () => void;
   resetDijkstra: () => void;
   setSpeed: (speed: number) => void;
@@ -119,6 +120,20 @@ export function useDijkstra(
       const vis = new Set<number>();
       const heap: { id: number; dist: number }[] = [];
 
+      // 1. Pre-init: All nodes infinity, PQ empty
+      const initialDist = new Map<number, number>();
+      nodes.forEach((n) => initialDist.set(n.id, Infinity));
+      steps.push({
+        type: "pre-init",
+        node: null,
+        pq: [],
+        distances: new Map(initialDist),
+        visited: new Set(vis),
+        msg: "Initialize all node distances to ∞.",
+        sourceId,
+      });
+
+      // Initialize distances for the rest of the algorithm
       nodes.forEach((n) => dist.set(n.id, n.id === sourceId ? 0 : Infinity));
       heap.push({ id: sourceId, dist: 0 });
 
@@ -128,7 +143,7 @@ export function useDijkstra(
         pq: [...heap],
         distances: new Map(dist),
         visited: new Set(vis),
-        msg: `dist[${lbl(sourceId)}] = 0; pq.push({0, ${lbl(sourceId)}});`,
+        msg: `Set dist[${lbl(sourceId)}] = 0; pq.push({0, ${lbl(sourceId)}});`,
         sourceId,
         changedNode: sourceId,
       });
@@ -239,13 +254,14 @@ export function useDijkstra(
   );
 
   const stepMap: Record<string, number> = {
-    init: 0,
-    "while-check": 1,
-    "extract-min": 2,
-    "for-loop": 3,
-    "relax-check": 4,
-    update: 5,
-    done: 6,
+    "pre-init": 0,
+    init: 1,
+    "while-check": 2,
+    "extract-min": 3,
+    "for-loop": 4,
+    "relax-check": 5,
+    update: 6,
+    done: 7,
   };
 
   const applyStep = useCallback(
@@ -367,6 +383,27 @@ export function useDijkstra(
     [buildSteps, applyStep, resetState]
   );
 
+  const prevStepDijkstra = useCallback(() => {
+    if (stepsRef.current.length === 0) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    runningRef.current = true;
+    setRunning(true);
+    pausedRef.current = true;
+    setPaused(true);
+
+    if (stepIdxRef.current > 1) {
+      const targetIdx = stepIdxRef.current - 2;
+      applyStep(stepsRef.current[targetIdx]);
+      stepIdxRef.current = targetIdx + 1;
+      setLogEntries((prev) => prev.slice(0, targetIdx + 1));
+    } else if (stepIdxRef.current === 1) {
+      applyStep(stepsRef.current[0]);
+      stepIdxRef.current = 1;
+      setLogEntries((prev) => prev.slice(0, 1));
+    }
+  }, [applyStep]);
+
   const togglePause = useCallback(() => {
     if (!runningRef.current) return;
     pausedRef.current = !pausedRef.current;
@@ -412,6 +449,7 @@ export function useDijkstra(
     relaxResult,
     startDijkstra,
     stepDijkstra,
+    prevStepDijkstra,
     togglePause,
     resetDijkstra,
     setSpeed,

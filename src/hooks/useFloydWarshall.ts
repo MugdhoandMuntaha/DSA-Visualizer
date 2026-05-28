@@ -24,12 +24,14 @@ interface UseFloydWarshallReturn {
   stepFloydWarshall: () => void;
   togglePause: () => void;
   resetFloydWarshall: () => void;
+  prevStepFloydWarshall: () => void;
   setSpeed: (speed: number) => void;
 }
 
 export function useFloydWarshall(
   nodes: GraphNode[],
-  edges: GraphEdge[]
+  edges: GraphEdge[],
+  directed: boolean
 ): UseFloydWarshallReturn {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -78,11 +80,16 @@ export function useFloydWarshall(
     }
 
     // Fill adjacency weights
-    // Treating edges as bidirected as visualizer does not currently enforce direction
     edges.forEach((e) => {
       const wt = e.weight ?? 1;
-      if (dist[e.from] && dist[e.from][e.to] !== undefined) dist[e.from][e.to] = Math.min(dist[e.from][e.to], wt);
-      if (dist[e.to] && dist[e.to][e.from] !== undefined) dist[e.to][e.from] = Math.min(dist[e.to][e.from], wt);
+      if (dist[e.from] && dist[e.from][e.to] !== undefined) {
+        dist[e.from][e.to] = Math.min(dist[e.from][e.to], wt);
+      }
+      if (!directed) {
+        if (dist[e.to] && dist[e.to][e.from] !== undefined) {
+          dist[e.to][e.from] = Math.min(dist[e.to][e.from], wt);
+        }
+      }
     });
 
     steps.push({
@@ -135,7 +142,7 @@ export function useFloydWarshall(
     });
 
     return steps;
-  }, [nodes, edges, lbl]);
+  }, [nodes, edges, directed, lbl]);
 
   const stepMap: Record<string, number> = {
     init: 0,
@@ -164,9 +171,6 @@ export function useFloydWarshall(
       runningRef.current = false;
       setRunning(false);
       setPaused(false);
-      setCurrentVia(null);
-      setCurrentI(null);
-      setCurrentJ(null);
       return;
     }
     applyStep(stepsRef.current[stepIdxRef.current]);
@@ -225,14 +229,32 @@ export function useFloydWarshall(
       runningRef.current = false;
       setRunning(false);
       setPaused(false);
-      setCurrentVia(null);
-      setCurrentI(null);
-      setCurrentJ(null);
       return;
     }
     applyStep(stepsRef.current[stepIdxRef.current]);
     stepIdxRef.current++;
   }, [nodes.length, buildSteps, applyStep]);
+
+  const prevStepFloydWarshall = useCallback(() => {
+    if (stepsRef.current.length === 0) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    runningRef.current = true;
+    setRunning(true);
+    pausedRef.current = true;
+    setPaused(true);
+
+    if (stepIdxRef.current > 1) {
+      const targetIdx = stepIdxRef.current - 2;
+      applyStep(stepsRef.current[targetIdx]);
+      stepIdxRef.current = targetIdx + 1;
+      setLogEntries((prev) => prev.slice(0, targetIdx + 1));
+    } else if (stepIdxRef.current === 1) {
+      applyStep(stepsRef.current[0]);
+      stepIdxRef.current = 1;
+      setLogEntries((prev) => prev.slice(0, 1));
+    }
+  }, [applyStep]);
 
   const togglePause = useCallback(() => {
     if (!runningRef.current) return;
@@ -276,5 +298,6 @@ export function useFloydWarshall(
     togglePause,
     resetFloydWarshall,
     setSpeed,
+    prevStepFloydWarshall,
   };
 }

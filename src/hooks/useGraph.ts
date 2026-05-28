@@ -22,7 +22,7 @@ interface UseGraphReturn {
   moveNode: (id: number, x: number, y: number) => void;
   clearGraph: () => void;
   loadPreset: (
-    type: "tree" | "grid" | "random",
+    type: "tree" | "grid" | "random" | "notebook",
     canvasW: number,
     canvasH: number,
     weighted?: boolean
@@ -31,15 +31,17 @@ interface UseGraphReturn {
   setEdges: React.Dispatch<React.SetStateAction<GraphEdge[]>>;
   labelType: "number" | "letter";
   toggleLabelType: () => void;
+  directed: boolean;
+  setDirected: (d: boolean) => void;
 }
 
 export function useGraph(): UseGraphReturn {
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
-  const [nextId, setNextId] = useState(0);
   const [mode, setMode] = useState<InteractionMode>("node");
   const [edgeStart, setEdgeStart] = useState<number | null>(null);
   const [labelType, setLabelType] = useState<"number" | "letter">("letter");
+  const [directed, setDirected] = useState<boolean>(false);
 
   const toggleLabelType = useCallback(() => {
     setLabelType((prev) => {
@@ -51,28 +53,36 @@ export function useGraph(): UseGraphReturn {
 
   const addNode = useCallback(
     (x: number, y: number) => {
-      const label = makeLabel(nextId, labelType);
-      setNodes((prev) => [...prev, { id: nextId, x, y, label }]);
-      setNextId((prev) => prev + 1);
+      setNodes((prev) => {
+        let unusedId = 0;
+        while (prev.some((n) => n.id === unusedId)) {
+          unusedId++;
+        }
+        const label = makeLabel(unusedId, labelType);
+        return [...prev, { id: unusedId, x, y, label }];
+      });
     },
-    [nextId, labelType]
+    [labelType]
   );
 
   const addEdge = useCallback(
     (a: number, b: number, weight?: number) => {
       setEdges((prev) => {
-        const exists = prev.some((e) => (e.from === a && e.to === b) || (e.from === b && e.to === a));
+        const exists = directed
+          ? prev.some((e) => e.from === a && e.to === b)
+          : prev.some((e) => (e.from === a && e.to === b) || (e.from === b && e.to === a));
         if (exists) {
-          return prev.map((e) =>
-            (e.from === a && e.to === b) || (e.from === b && e.to === a)
-              ? { ...e, weight }
-              : e
-          );
+          return prev.map((e) => {
+            const isMatch = directed
+              ? (e.from === a && e.to === b)
+              : ((e.from === a && e.to === b) || (e.from === b && e.to === a));
+            return isMatch ? { ...e, weight } : e;
+          });
         }
         return [...prev, { from: a, to: b, weight }];
       });
     },
-    []
+    [directed]
   );
 
   const deleteNode = useCallback((id: number) => {
@@ -91,13 +101,12 @@ export function useGraph(): UseGraphReturn {
   const clearGraph = useCallback(() => {
     setNodes([]);
     setEdges([]);
-    setNextId(0);
     setEdgeStart(null);
   }, []);
 
   const loadPreset = useCallback(
     (
-      type: "tree" | "grid" | "random",
+      type: "tree" | "grid" | "random" | "notebook",
       canvasW: number,
       canvasH: number,
       weighted?: boolean
@@ -108,16 +117,39 @@ export function useGraph(): UseGraphReturn {
       const cx = canvasW / 2;
       const cy = canvasH / 2;
 
+      // Determine label type locally for adding nodes in this load pass
+      const targetLabelType = type === "notebook" ? "number" : labelType;
+      if (type === "notebook") {
+        setLabelType("number");
+      }
+
       const add = (x: number, y: number) => {
-        newNodes.push({ id, x, y, label: makeLabel(id, labelType) });
+        newNodes.push({ id, x, y, label: makeLabel(id, targetLabelType) });
         id++;
       };
-      const link = (a: number, b: number) => {
-        const w = weighted ? Math.floor(Math.random() * 9) + 1 : undefined;
+      const link = (a: number, b: number, customW?: number) => {
+        const w = customW !== undefined ? customW : (weighted ? Math.floor(Math.random() * 9) + 1 : undefined);
         newEdges.push({ from: a, to: b, weight: w });
       };
 
-      if (type === "tree") {
+      if (type === "notebook") {
+        // Placements that match the notebook paper layout but more compact
+        const positions: [number, number][] = [
+          [cx - 180, cy],       // Node 0
+          [cx - 40, cy - 60],   // Node 1
+          [cx - 40, cy + 60],   // Node 2
+          [cx + 100, cy + 60],  // Node 3
+          [cx + 100, cy - 60],  // Node 4
+        ];
+        positions.forEach(([x, y]) => add(x, y));
+        // Edges: 0-1 (4), 0-2 (8), 1-2 (3), 1-4 (6), 2-3 (2), 3-4 (10)
+        link(0, 1, 4);
+        link(0, 2, 8);
+        link(1, 2, 3);
+        link(1, 4, 6);
+        link(2, 3, 2);
+        link(3, 4, 10);
+      } else if (type === "tree") {
         const positions: [number, number][] = [
           [cx, cy - 130],
           [cx - 140, cy - 30],
@@ -171,7 +203,6 @@ export function useGraph(): UseGraphReturn {
 
       setNodes(newNodes);
       setEdges(newEdges);
-      setNextId(id);
       setEdgeStart(null);
     },
     [labelType]
@@ -195,5 +226,7 @@ export function useGraph(): UseGraphReturn {
     setEdges,
     labelType,
     toggleLabelType,
+    directed,
+    setDirected,
   };
 }
