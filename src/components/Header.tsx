@@ -129,14 +129,16 @@ export default function Header({ title = "Algorithm Visualizer", badge }: Header
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleCloseThemeMenu}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              background: mode === "dark" ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(99, 102, 241, 0.15)",
-              borderRadius: 2,
-              minWidth: 190,
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1.5,
+                background: mode === "dark" ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(99, 102, 241, 0.15)",
+                borderRadius: 2,
+                minWidth: 190,
+              }
             }
           }}
         >
