@@ -138,8 +138,8 @@ export function useFractionalKnapsack() {
     let logs: string[] = ["Started Fractional Knapsack Algorithm."];
     
     const pushFrame = (updates: Partial<FkState>) => {
+      const prevFrame = frames.length > 0 ? frames[frames.length - 1] : {};
       frames.push({
-        items: JSON.parse(JSON.stringify(items)),
         sortedItems: [], // will be filled
         capacity: cap,
         currentWeight: 0,
@@ -149,7 +149,8 @@ export function useFractionalKnapsack() {
         logs: [...logs],
         activeCodeLine: null,
         fractionCalculation: null,
-        ...frames[frames.length - 1],
+        ...prevFrame,
+        items: JSON.parse(JSON.stringify(items)),
         ...updates
       } as FkState);
     };
