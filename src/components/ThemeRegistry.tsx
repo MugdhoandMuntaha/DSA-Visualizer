@@ -1,8 +1,16 @@
 "use client";
-import React, { createContext, useContext, useMemo, useState, useCallback } from "react";
+import React, { createContext, useContext, useMemo, useState, useCallback, useEffect } from "react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { lightTheme, darkTheme } from "@/lib/theme";
+import {
+  lightTheme,
+  darkTheme,
+  draculaTheme,
+  nordTheme,
+  cyberpunkTheme,
+  matrixTheme,
+  solarizedTheme,
+} from "@/lib/theme";
 
 interface ThemeContextType {
   mode: "light" | "dark";

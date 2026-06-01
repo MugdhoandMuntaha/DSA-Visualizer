@@ -1,6 +1,5 @@
 "use client";
-import { Box, Typography } from "@mui/material";
-import { useThemeMode } from "@/components/ThemeRegistry";
+import { Box, Typography, useTheme } from "@mui/material";
 
 interface ArrayCanvasProps {
   array: number[];
@@ -28,7 +27,7 @@ export default function ArrayCanvas({
   activeRange,
   mergedIndices = [],
 }: ArrayCanvasProps) {
-  const { mode: themeMode } = useThemeMode();
+  const theme = useTheme();
   const maxVal = Math.max(...array, 1);
 
   const inRange = (idx: number, range?: [number, number] | null) =>
@@ -49,44 +48,46 @@ export default function ArrayCanvas({
           const isDimmed = activeRange && !isInActive;
           const heightPct = Math.max((val / maxVal) * 100, 5);
 
-          let bgColor = themeMode === "dark" ? "rgba(59,130,246,0.8)" : "rgba(96,165,250,0.8)";
-          let borderColor = themeMode === "dark" ? "#3b82f6" : "#60a5fa";
+          const isDark = theme.palette.mode === "dark";
+          let bgColor = `${theme.palette.primary.main}cc`;
+          let borderColor = theme.palette.primary.main;
           let textColor: string = "text.secondary";
           let glow = "none";
 
           if (isMerged) {
-            bgColor = themeMode === "dark" ? "rgba(139,92,246,0.85)" : "rgba(167,139,250,0.85)";
-            borderColor = "#8b5cf6";
+            bgColor = `${theme.palette.secondary.main}d9`;
+            borderColor = theme.palette.secondary.main;
             textColor = "secondary.main";
             glow = `0 0 14px ${bgColor}`;
           } else if (isKey) {
-            bgColor = themeMode === "dark" ? "rgba(139,92,246,0.9)" : "rgba(167,139,250,0.9)";
-            borderColor = "#8b5cf6";
+            bgColor = `${theme.palette.secondary.main}e6`;
+            borderColor = theme.palette.secondary.main;
             textColor = "secondary.main";
             glow = `0 0 24px ${bgColor}`;
           } else if (isShifting) {
-            bgColor = themeMode === "dark" ? "rgba(239,68,68,0.7)" : "rgba(248,113,113,0.7)";
-            borderColor = "#ef4444";
+            bgColor = `${theme.palette.error.main}b3`;
+            borderColor = theme.palette.error.main;
             textColor = "error.main";
             glow = `0 0 16px ${bgColor}`;
           } else if (isSorted) {
-            bgColor = themeMode === "dark" ? "rgba(16,185,129,0.8)" : "rgba(52,211,153,0.8)";
-            borderColor = "#10b981";
+            bgColor = `${theme.palette.success.main}cc`;
+            borderColor = theme.palette.success.main;
             textColor = "success.main";
             glow = `0 0 10px ${bgColor}`;
           } else if (isComparing) {
-            bgColor = themeMode === "dark" ? "rgba(245,158,11,0.9)" : "rgba(251,191,36,0.9)";
-            borderColor = "#f59e0b";
+            bgColor = `${theme.palette.warning.main}e6`;
+            borderColor = theme.palette.warning.main;
             textColor = "warning.main";
             glow = `0 0 20px ${bgColor}`;
           } else if (isLeft) {
-            bgColor = themeMode === "dark" ? "rgba(6,182,212,0.75)" : "rgba(34,211,238,0.75)";
-            borderColor = "#06b6d4";
+            bgColor = `${theme.palette.info.main}c0`;
+            borderColor = theme.palette.info.main;
             textColor = "info.main";
             glow = `0 0 10px ${bgColor}`;
           } else if (isRight) {
-            bgColor = themeMode === "dark" ? "rgba(249,115,22,0.75)" : "rgba(251,146,60,0.75)";
-            borderColor = "#f97316";
+            // Using error or warning for right side in merge sort splits
+            bgColor = `${theme.palette.warning.main}c0`;
+            borderColor = theme.palette.warning.main;
             textColor = "warning.main";
             glow = `0 0 10px ${bgColor}`;
           }

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { useThemeMode } from "@/components/ThemeRegistry";
 import {
   GraphNode,
@@ -171,7 +171,7 @@ export default function GraphCanvas({
   const dragRef = useRef<{ node: GraphNode; offX: number; offY: number } | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const panRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number; hasDragged: boolean } | null>(null);
-  const { mode: themeMode } = useThemeMode();
+  const theme = useTheme();
 
   const getColors = useCallback((): AlgoColorSchemes => {
     if (visualMode === "notebook") {
@@ -183,8 +183,36 @@ export default function GraphCanvas({
         neighbor: { fill: "#faf5ff", stroke: "#7c3aed", text: "#7c3aed" },  // purple ink
       };
     }
-    return themeMode === "dark" ? DARK_COLORS : LIGHT_COLORS;
-  }, [themeMode, visualMode]);
+    
+    const isDark = theme.palette.mode === "dark";
+    return {
+      unvisited: { 
+        fill: theme.palette.background.paper, 
+        stroke: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.15)", 
+        text: theme.palette.text.primary 
+      },
+      inQueue: { 
+        fill: isDark ? `${theme.palette.primary.main}2d` : `${theme.palette.primary.main}1a`, 
+        stroke: theme.palette.primary.main, 
+        text: theme.palette.primary.main 
+      },
+      current: { 
+        fill: isDark ? `${theme.palette.warning.main}33` : `${theme.palette.warning.main}1f`, 
+        stroke: theme.palette.warning.main, 
+        text: theme.palette.warning.main 
+      },
+      visited: { 
+        fill: isDark ? `${theme.palette.success.main}2d` : `${theme.palette.success.main}1a`, 
+        stroke: theme.palette.success.main, 
+        text: theme.palette.success.main 
+      },
+      neighbor: { 
+        fill: isDark ? `${theme.palette.secondary.main}2d` : `${theme.palette.secondary.main}1a`, 
+        stroke: theme.palette.secondary.main, 
+        text: theme.palette.secondary.main 
+      },
+    };
+  }, [theme, visualMode]);
 
   const getNodeColor = useCallback(
     (n: GraphNode) => {

@@ -1,8 +1,11 @@
 "use client";
-import { AppBar, Toolbar, Typography, IconButton, Chip, Box } from "@mui/material";
+import React, { useState } from "react";
+import { AppBar, Toolbar, Typography, IconButton, Chip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import Home from "@mui/icons-material/Home";
+import Palette from "@mui/icons-material/Palette";
+import Circle from "@mui/icons-material/Circle";
 import { useThemeMode } from "@/components/ThemeRegistry";
 import Link from "next/link";
 
@@ -11,8 +14,29 @@ interface HeaderProps {
   badge?: string;
 }
 
+const THEMES = [
+  { id: "default", name: "Default (Slate)", color: "#6366f1" },
+  { id: "dracula", name: "Dracula (Vampire)", color: "#bd93f9" },
+  { id: "nord", name: "Nordic Frost", color: "#88c0d0" },
+  { id: "cyberpunk", name: "Cyberpunk 2077", color: "#fbc531" },
+  { id: "matrix", name: "Hacker Matrix", color: "#00ff66" },
+  { id: "solarized", name: "Solarized Dark", color: "#268bd2" },
+];
+
 export default function Header({ title = "Algorithm Visualizer", badge }: HeaderProps) {
-  const { mode, toggleTheme } = useThemeMode();
+  const { mode, themeName, setThemeName, toggleTheme } = useThemeMode();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleOpenThemeMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseThemeMenu = () => {
+    setAnchorEl(null);
+  };
+  const handleSelectTheme = (name: string) => {
+    setThemeName(name);
+    handleCloseThemeMenu();
+  };
 
   return (
     <AppBar
@@ -93,9 +117,46 @@ export default function Header({ title = "Algorithm Visualizer", badge }: Header
           <Home fontSize="small" />
         </IconButton>
 
+        <IconButton onClick={handleOpenThemeMenu} size="small" sx={{ color: "text.secondary" }}>
+          <Palette fontSize="small" />
+        </IconButton>
+
         <IconButton onClick={toggleTheme} size="small" sx={{ color: "text.secondary" }}>
           {mode === "dark" ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
         </IconButton>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleCloseThemeMenu}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              background: mode === "dark" ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(99, 102, 241, 0.15)",
+              borderRadius: 2,
+              minWidth: 190,
+            }
+          }}
+        >
+          {THEMES.map((themeOption) => (
+            <MenuItem 
+              key={themeOption.id} 
+              selected={themeName === themeOption.id}
+              onClick={() => handleSelectTheme(themeOption.id)}
+              sx={{ py: 1 }}
+            >
+              <ListItemIcon sx={{ minWidth: "28px !important" }}>
+                <Circle sx={{ color: themeOption.color, fontSize: 10 }} />
+              </ListItemIcon>
+              <ListItemText 
+                primary={themeOption.name} 
+                primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: themeName === themeOption.id ? 700 : 500 }} 
+              />
+            </MenuItem>
+          ))}
+        </Menu>
       </Toolbar>
     </AppBar>
   );
