@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { AppBar, Toolbar, Typography, IconButton, Chip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { AppBar, Toolbar, Typography, IconButton, Chip, Box, Menu, MenuItem } from "@mui/material";
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import Home from "@mui/icons-material/Home";
@@ -147,15 +147,12 @@ export default function Header({ title = "Algorithm Visualizer", badge }: Header
               key={themeOption.id} 
               selected={themeName === themeOption.id}
               onClick={() => handleSelectTheme(themeOption.id)}
-              sx={{ py: 1 }}
+              sx={{ py: 1, display: "flex", alignItems: "center", gap: 1.5 }}
             >
-              <ListItemIcon sx={{ minWidth: "28px !important" }}>
-                <Circle sx={{ color: themeOption.color, fontSize: 10 }} />
-              </ListItemIcon>
-              <ListItemText 
-                primary={themeOption.name} 
-                primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: themeName === themeOption.id ? 700 : 500 }} 
-              />
+              <Circle sx={{ color: themeOption.color, fontSize: 10 }} />
+              <Typography sx={{ fontSize: "0.85rem", fontWeight: themeName === themeOption.id ? 700 : 500 }}>
+                {themeOption.name}
+              </Typography>
             </MenuItem>
           ))}
         </Menu>
