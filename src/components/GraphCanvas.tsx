@@ -269,7 +269,7 @@ export default function GraphCanvas({
       ctx.restore();
     } else {
       ctx.save();
-      ctx.strokeStyle = themeMode === "dark" ? "rgba(99,102,241,0.04)" : "rgba(99,102,241,0.06)";
+      ctx.strokeStyle = theme.palette.mode === "dark" ? "rgba(99,102,241,0.04)" : "rgba(99,102,241,0.06)";
       ctx.lineWidth = 1;
       const step = 40;
       const startX = (pan.x % step) - step;
@@ -378,16 +378,16 @@ export default function GraphCanvas({
         }
       } else {
         ctx.save();
-        let color = themeMode === "dark" ? "rgba(71,85,105,0.5)" : "rgba(71,85,105,0.6)";
+        let color = theme.palette.mode === "dark" ? "rgba(71,85,105,0.5)" : "rgba(71,85,105,0.6)";
         let width = edgeBaseWidth;
 
         if (isHighlighted) {
-          color = themeMode === "dark" ? "#fbbf24" : "#d97706";
+          color = theme.palette.mode === "dark" ? "#fbbf24" : "#d97706";
           width = edgeBaseWidth + 2;
           ctx.shadowColor = color;
           ctx.shadowBlur = 10;
         } else if (isMst) {
-          color = themeMode === "dark" ? "#34d399" : "#10b981"; // Emerald green
+          color = theme.palette.mode === "dark" ? "#34d399" : "#10b981"; // Emerald green
           width = edgeBaseWidth + 1.5;
           ctx.shadowColor = color;
           ctx.shadowBlur = 8;
@@ -423,14 +423,14 @@ export default function GraphCanvas({
           // Background pill
           const text = String(e.weight);
           const tw = ctx.measureText(text).width + 8;
-          ctx.fillStyle = themeMode === "dark" ? "#1e293b" : "#ffffff";
+          ctx.fillStyle = theme.palette.mode === "dark" ? "#1e293b" : "#ffffff";
           ctx.beginPath();
           ctx.roundRect(mx - tw / 2, my - fontSize / 2 - 2, tw, fontSize + 4, 4);
           ctx.fill();
-          ctx.strokeStyle = themeMode === "dark" ? "rgba(71,85,105,0.5)" : "rgba(148,163,184,0.5)";
+          ctx.strokeStyle = theme.palette.mode === "dark" ? "rgba(71,85,105,0.5)" : "rgba(148,163,184,0.5)";
           ctx.lineWidth = 1;
           ctx.stroke();
-          ctx.fillStyle = themeMode === "dark" ? "#fbbf24" : "#d97706";
+          ctx.fillStyle = theme.palette.mode === "dark" ? "#fbbf24" : "#d97706";
           ctx.fillText(text, mx, my);
         }
         ctx.restore();
@@ -522,7 +522,7 @@ export default function GraphCanvas({
     neighborChecking,
     visitedSet,
     queueIds,
-    themeMode,
+    theme,
     getNodeColor,
     getColors,
     pan.x,
