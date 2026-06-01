@@ -186,17 +186,41 @@ export default function DijkstraPage() {
             </Box>
           </Paper>
 
-          {/* Top (Extracted Min) */}
-          <Paper variant="outlined" sx={{ p: 2, borderColor: "rgba(99,102,241,0.15)" }}>
-            <Typography variant="overline" sx={{ fontSize: "0.78rem", fontWeight: 700, color: "text.secondary" }}>top</Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-              <Box sx={{ width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 1.5,
-                fontFamily: "var(--font-mono)", fontSize: "1.1rem", fontWeight: 800, position: "relative",
-                ...(dijkstra.temp !== null ? { bgcolor: "rgba(217,119,6,0.1)", border: "2px solid", borderColor: "warning.main", color: "warning.main",
-                  boxShadow: "0 0 20px rgba(217,119,6,0.15)", animation: "tempPop 0.4s cubic-bezier(0.34,1.56,0.64,1), tempGlow 1.5s ease-in-out infinite 0.4s" }
-                  : { bgcolor: "action.hover", border: "2px dashed", borderColor: "divider", color: "text.disabled" }) }}>
-                {dijkstra.temp !== null ? graph.nodes.find(n => n.id === dijkstra.temp)?.label : "?"}
-              </Box>
+          {/* Calculation Details */}
+          <Paper variant="outlined" sx={{ p: 2, borderColor: "rgba(99,102,241,0.15)", display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography variant="overline" sx={{ fontSize: "0.78rem", fontWeight: 700, color: "text.secondary", lineHeight: 1 }}>Current State</Typography>
+            
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "rgba(99,102,241,0.05)", p: 1, borderRadius: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Source:</Typography>
+              <Chip label={dijkstra.sourceNodeId !== null ? graph.nodes.find(n => n.id === dijkstra.sourceNodeId)?.label : "-"} size="small" sx={{ height: 20, fontSize: "0.7rem", fontFamily: "var(--font-mono)", fontWeight: 700, bgcolor: "rgba(99,102,241,0.1)", color: "primary.main" }} />
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "rgba(217,119,6,0.05)", p: 1, borderRadius: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Current (u):</Typography>
+              <Chip label={dijkstra.currentNodeId !== null ? `${graph.nodes.find(n => n.id === dijkstra.currentNodeId)?.label} (d=${dijkstra.currentDist === Infinity || dijkstra.currentDist === null ? '∞' : dijkstra.currentDist})` : "-"} size="small" sx={{ height: 20, fontSize: "0.7rem", fontFamily: "var(--font-mono)", fontWeight: 700, bgcolor: "rgba(217,119,6,0.1)", color: "warning.main" }} />
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "rgba(16,185,129,0.05)", p: 1, borderRadius: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Neighbor (v):</Typography>
+              <Chip label={dijkstra.neighborChecking !== null ? `${graph.nodes.find(n => n.id === dijkstra.neighborChecking)?.label} (w=${dijkstra.neighborWeight})` : "-"} size="small" sx={{ height: 20, fontSize: "0.7rem", fontFamily: "var(--font-mono)", fontWeight: 700, bgcolor: "rgba(16,185,129,0.1)", color: "success.main" }} />
+            </Box>
+
+            <Box sx={{ mt: 0.5, p: 1, borderRadius: 1, bgcolor: "action.hover", border: "1px solid", borderColor: "divider" }}>
+              <Typography variant="caption" sx={{ display: "block", textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "text.secondary", mb: 0.5 }}>
+                Relaxation: dist[u] + w &lt; dist[v]
+              </Typography>
+              {dijkstra.neighborChecking !== null && dijkstra.oldDist !== null && dijkstra.newDist !== null ? (
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 700 }}>
+                    {dijkstra.currentDist} + {dijkstra.neighborWeight} = {dijkstra.newDist}
+                  </Typography>
+                  <Typography sx={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 700, color: dijkstra.relaxResult === 'relaxed' ? "success.main" : "error.main" }}>
+                    {dijkstra.newDist} &lt; {dijkstra.oldDist === Infinity ? '∞' : dijkstra.oldDist} ? {dijkstra.relaxResult === 'relaxed' ? "Yes" : "No"}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography sx={{ textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "text.disabled" }}>Waiting...</Typography>
+              )}
             </Box>
           </Paper>
 
@@ -210,12 +234,14 @@ export default function DijkstraPage() {
                 : graph.nodes.map(n => {
                   const d = dijkstra.distances.get(n.id);
                   const v = dijkstra.visited.has(n.id);
+                  const isChanged = dijkstra.changedNode === n.id;
                   return (
                     <Box key={n.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1.25, py: 0.5, borderRadius: 1,
-                      bgcolor: v ? "rgba(16,185,129,0.06)" : "action.hover", border: "1px solid", borderColor: v ? "rgba(16,185,129,0.2)" : "divider" }}>
-                      <Typography sx={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem", fontWeight: 700, color: v ? "success.main" : "text.secondary" }}>{n.label}</Typography>
+                      bgcolor: isChanged ? "rgba(16,185,129,0.15)" : v ? "rgba(16,185,129,0.06)" : "action.hover", border: "1px solid", 
+                      borderColor: isChanged ? "success.main" : v ? "rgba(16,185,129,0.2)" : "divider", transition: "all 0.3s ease" }}>
+                      <Typography sx={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem", fontWeight: 700, color: isChanged ? "success.main" : v ? "success.main" : "text.secondary" }}>{n.label}</Typography>
                       <Chip label={d === undefined || d === Infinity ? "∞" : d} size="small" sx={{ fontSize: "0.65rem", fontWeight: 700, height: 20, fontFamily: "var(--font-mono)",
-                        bgcolor: v ? "rgba(16,185,129,0.1)" : "action.hover", color: v ? "success.main" : "text.secondary" }} />
+                        bgcolor: isChanged ? "success.main" : v ? "rgba(16,185,129,0.1)" : "action.hover", color: isChanged ? "#fff" : v ? "success.main" : "text.secondary", transition: "all 0.3s ease" }} />
                     </Box>
                   );
                 })}

@@ -159,6 +159,11 @@ export const CATEGORIZED_ALGORITHMS = [
         icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="10" width="6" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/><rect x="18" y="10" width="6" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/><path d="M10 14 L16 14 M16 14 L14 12 M16 14 L14 16" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
       },
       {
+        title: "LL Merge Sort", description: "Merge Sort on Linked List with full divide & merge tree visualization. Watch slow/fast pointer splitting and sorted merging.",
+        complexity: "O(NlogN)", href: "/ll-merge-sort", color: "#eab308", available: true,
+        icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="6" cy="14" r="3" stroke="#fff" strokeWidth="1.5"/><circle cx="22" cy="14" r="3" stroke="#fff" strokeWidth="1.5"/><path d="M9 14 L19 14 M19 14 L17 12 M19 14 L17 16" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><path d="M14 4 L6 10 M14 4 L22 10 M6 18 L14 24 M22 18 L14 24" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/></svg>,
+      },
+      {
         title: "Stack & Queue", description: "LIFO and FIFO operations. Watch elements get pushed, popped, enqueued, and dequeued.",
         complexity: "O(1)", href: "/stack-queue", color: "#f43f5e", available: false,
         icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 6 L8 22 L20 22 L20 6" stroke="#fff" strokeWidth="1.5"/><rect x="10" y="16" width="8" height="4" fill="#fff"/><rect x="10" y="10" width="8" height="4" fill="#fff" opacity="0.5"/></svg>,
@@ -208,6 +213,19 @@ export const CATEGORIZED_ALGORITHMS = [
         title: "Coin Change", description: "Find the total ways to make a target amount using given coin denominations (Unbounded Knapsack).",
         complexity: "O(N * M)", href: "/coin-change", color: "#eab308", available: true,
         icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" strokeWidth="2"/><text x="14" y="18" fill="#fff" fontSize="12" fontWeight="bold" textAnchor="middle">$</text></svg>,
+      },
+    ]
+  },
+  {
+    category: "Greedy algorithms",
+    slug: "greedy",
+    color: "#eab308", // Yellow/Gold
+    icon: <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><path d="M14 4 L24 10 L24 22 L14 28 L4 22 L4 10 Z" fill="#fff" opacity="0.8"/><circle cx="14" cy="16" r="4" fill="#1e293b"/></svg>,
+    algorithms: [
+      {
+        title: "Fractional Knapsack", description: "Maximize profit by packing items or fractions of items in a knapsack based on value-to-weight ratio.",
+        complexity: "O(NlogN)", href: "/fractional-knapsack", color: "#eab308", available: true,
+        icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="6" y="8" width="16" height="14" rx="2" stroke="#fff" strokeWidth="2"/><path d="M10 8 V4 H18 V8" stroke="#fff" strokeWidth="2"/><line x1="6" y1="15" x2="22" y2="15" stroke="#fff" strokeWidth="2" strokeDasharray="2 2"/></svg>,
       },
     ]
   }

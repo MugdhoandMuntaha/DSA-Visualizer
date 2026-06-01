@@ -12,6 +12,14 @@ export interface DijkstraStep {
   edge?: { from: number; to: number };
   msg: string;
   traversalAdd?: number;
+  // Enhanced calculation data
+  sourceId: number;
+  currentDist?: number;
+  neighborWeight?: number;
+  oldDist?: number;
+  newDist?: number;
+  changedNode?: number; // node whose dist was just updated
+  relaxResult?: 'relaxed' | 'not-relaxed' | null;
 }
 
 interface UseDijkstraReturn {
@@ -27,6 +35,14 @@ interface UseDijkstraReturn {
   neighborChecking: number | null;
   activeStepIdx: number;
   logEntries: { type: string; msg: string }[];
+  // Enhanced calculation state
+  sourceNodeId: number | null;
+  currentDist: number | null;
+  neighborWeight: number | null;
+  oldDist: number | null;
+  newDist: number | null;
+  changedNode: number | null;
+  relaxResult: 'relaxed' | 'not-relaxed' | null;
   startDijkstra: (sourceId: number) => void;
   stepDijkstra: (sourceId: number) => void;
   togglePause: () => void;
@@ -72,6 +88,14 @@ export function useDijkstra(
   const [logEntries, setLogEntries] = useState<{ type: string; msg: string }[]>(
     []
   );
+  // Enhanced calculation state
+  const [sourceNodeId, setSourceNodeId] = useState<number | null>(null);
+  const [currentDistState, setCurrentDistState] = useState<number | null>(null);
+  const [neighborWeightState, setNeighborWeightState] = useState<number | null>(null);
+  const [oldDistState, setOldDistState] = useState<number | null>(null);
+  const [newDistState, setNewDistState] = useState<number | null>(null);
+  const [changedNode, setChangedNode] = useState<number | null>(null);
+  const [relaxResult, setRelaxResult] = useState<'relaxed' | 'not-relaxed' | null>(null);
 
   const stepsRef = useRef<DijkstraStep[]>([]);
   const stepIdxRef = useRef(0);
@@ -105,6 +129,8 @@ export function useDijkstra(
         distances: new Map(dist),
         visited: new Set(vis),
         msg: `dist[${lbl(sourceId)}] = 0; pq.push({0, ${lbl(sourceId)}});`,
+        sourceId,
+        changedNode: sourceId,
       });
 
       while (heap.length > 0) {
@@ -117,6 +143,7 @@ export function useDijkstra(
           distances: new Map(dist),
           visited: new Set(vis),
           msg: `!pq.empty() is true. PQ size: ${heap.length}`,
+          sourceId,
         });
 
         const curr = heap.shift()!;
@@ -135,6 +162,8 @@ export function useDijkstra(
           visited: new Set(vis),
           msg: `auto top = pq.top(); pq.pop();\ncurrDist = ${curr.dist}, currNode = ${lbl(curr.id)}`,
           traversalAdd: curr.id,
+          sourceId,
+          currentDist: curr.dist,
         });
 
         const nbrs = getWeightedNeighbors(curr.id, edges, nodes);
@@ -145,6 +174,8 @@ export function useDijkstra(
           distances: new Map(dist),
           visited: new Set(vis),
           msg: `for(auto &nbr: adj[${lbl(curr.id)}]) -> ${nbrs.length} neighbors`,
+          sourceId,
+          currentDist: curr.dist,
         });
 
         for (const nb of nbrs) {
@@ -160,6 +191,12 @@ export function useDijkstra(
             visited: new Set(vis),
             edge: { from: curr.id, to: nb.id },
             msg: `if(${curr.dist} + ${nb.weight} < ${oldDist === Infinity ? "∞" : oldDist})`,
+            sourceId,
+            currentDist: curr.dist,
+            neighborWeight: nb.weight,
+            oldDist,
+            newDist: newDist,
+            relaxResult: newDist < oldDist ? 'relaxed' : 'not-relaxed',
           });
 
           if (newDist < oldDist) {
@@ -174,6 +211,13 @@ export function useDijkstra(
               visited: new Set(vis),
               edge: { from: curr.id, to: nb.id },
               msg: `dist[${lbl(nb.id)}] = ${newDist}; pq.push({${newDist}, ${lbl(nb.id)}});`,
+              sourceId,
+              currentDist: curr.dist,
+              neighborWeight: nb.weight,
+              oldDist,
+              newDist,
+              changedNode: nb.id,
+              relaxResult: 'relaxed',
             });
           }
         }
@@ -186,6 +230,7 @@ export function useDijkstra(
         distances: new Map(dist),
         visited: new Set(vis),
         msg: "Algorithm complete. Shortest distances calculated.",
+        sourceId,
       });
 
       return steps;
@@ -217,6 +262,15 @@ export function useDijkstra(
       }
       if (step.type === "extract-min") setTemp(step.node);
       else if (step.type === "done") setTemp(null);
+
+      // Enhanced calculation state
+      setSourceNodeId(step.sourceId ?? null);
+      setCurrentDistState(step.currentDist ?? null);
+      setNeighborWeightState(step.neighborWeight ?? null);
+      setOldDistState(step.oldDist ?? null);
+      setNewDistState(step.newDist ?? null);
+      setChangedNode(step.changedNode ?? null);
+      setRelaxResult(step.relaxResult ?? null);
 
       setActiveStepIdx(stepMap[step.type] ?? -1);
       setLogEntries((prev) => [...prev, { type: step.type, msg: step.msg }]);
@@ -254,6 +308,14 @@ export function useDijkstra(
     setNeighborChecking(null);
     setActiveStepIdx(-1);
     setLogEntries([]);
+    // Reset enhanced state
+    setSourceNodeId(null);
+    setCurrentDistState(null);
+    setNeighborWeightState(null);
+    setOldDistState(null);
+    setNewDistState(null);
+    setChangedNode(null);
+    setRelaxResult(null);
   }, []);
 
   const startDijkstra = useCallback(
@@ -340,6 +402,14 @@ export function useDijkstra(
     neighborChecking,
     activeStepIdx,
     logEntries,
+    // Enhanced calculation state
+    sourceNodeId,
+    currentDist: currentDistState,
+    neighborWeight: neighborWeightState,
+    oldDist: oldDistState,
+    newDist: newDistState,
+    changedNode,
+    relaxResult,
     startDijkstra,
     stepDijkstra,
     togglePause,
